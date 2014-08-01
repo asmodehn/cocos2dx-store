@@ -1,10 +1,20 @@
-//
-//  CCPurchasableVirtualItem.cpp
-//  cocos2dx-store
-//
-//  Created by Igor Yegoroff on 5/17/13.
-//
-//
+/*
+ Copyright (C) 2012-2014 Soomla Inc.
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+ http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+// Created by Fedor Shubin on 5/19/13.
 
 #include "CCPurchasableVirtualItem.h"
 
@@ -15,7 +25,7 @@ namespace soomla {
     
     using namespace cocos2d;
     
-    bool CCPurchasableVirtualItem::init(cocos2d::CCString* name, cocos2d::CCString* description, cocos2d::CCString* itemId, CCPurchaseType * purchaseType) {
+    bool CCPurchasableVirtualItem::init(cocos2d::__String* name, cocos2d::__String* description, cocos2d::__String* itemId, CCPurchaseType * purchaseType) {
         bool bRet = CCVirtualItem::init(name, description, itemId);
         if (bRet) {
             setPurchaseType(purchaseType);
@@ -23,7 +33,7 @@ namespace soomla {
         return bRet;
     }
     
-    bool CCPurchasableVirtualItem::initWithDictionary(cocos2d::CCDictionary* dict) {
+    bool CCPurchasableVirtualItem::initWithDictionary(cocos2d::__Dictionary* dict) {
         bool bRet = CCVirtualItem::initWithDictionary(dict);
         if (bRet) {
             fillPurchaseTypeFromDict(dict);
@@ -33,78 +43,74 @@ namespace soomla {
         }
     }
 
-    CCPurchasableVirtualItem *CCPurchasableVirtualItem::create(cocos2d::CCString* name, cocos2d::CCString* description, cocos2d::CCString* itemId, CCPurchaseType * purchaseType) {
-        CCPurchasableVirtualItem * pRet = new CCPurchasableVirtualItem();
-        if (pRet) {
-            pRet->autorelease();
-            pRet->init(name, description, itemId, purchaseType);
+    CCPurchasableVirtualItem *CCPurchasableVirtualItem::create(cocos2d::__String* name, cocos2d::__String* description, cocos2d::__String* itemId, CCPurchaseType * purchaseType) {
+        CCPurchasableVirtualItem * ret = new CCPurchasableVirtualItem();
+        if (ret->init(name, description, itemId, purchaseType)) {
+            ret->autorelease();
         }
-        return pRet;
+        else {
+            CC_SAFE_DELETE(ret);
+        }
+
+        return ret;
     }
 
-    CCPurchasableVirtualItem *CCPurchasableVirtualItem::createWithDictionary(cocos2d::CCDictionary* dict) {
-        CCPurchasableVirtualItem * pRet = new CCPurchasableVirtualItem();
-        if (pRet) {
-            pRet->autorelease();
-            pRet->initWithDictionary(dict);
-        }
-        return pRet;
-    }
-    
     CCPurchasableVirtualItem::~CCPurchasableVirtualItem() {
         CC_SAFE_RELEASE(mPurchaseType);
     }
     
-    cocos2d::CCDictionary*CCPurchasableVirtualItem::toDictionary() {
-        CCDictionary* dict = CCVirtualItem::toDictionary();
+    cocos2d::__Dictionary*CCPurchasableVirtualItem::toDictionary() {
+        __Dictionary* dict = CCVirtualItem::toDictionary();
 
         putPurchaseTypeToDict(dict);
 
-        return dict;
+        return this->putTypeData(dict, CCStoreConsts::JSON_JSON_TYPE_PURCHASABLE_VIRTUAL_ITEM);
     }
 
-    void CCPurchasableVirtualItem::fillPurchaseTypeFromDict(CCDictionary *dict) {
-        CCDictionary *purchasableDict = dynamic_cast<CCDictionary *>(dict->objectForKey(JSON_PURCHASABLE_ITEM));
+    void CCPurchasableVirtualItem::fillPurchaseTypeFromDict(__Dictionary *dict) {
+        __Dictionary *purchasableDict = dynamic_cast<__Dictionary *>(dict->objectForKey(CCStoreConsts::JSON_PURCHASABLE_ITEM));
         CC_ASSERT(purchasableDict);
-        CCString* purchaseTypeStr = dynamic_cast<CCString *>(purchasableDict->objectForKey(JSON_PURCHASE_TYPE));
+        __String* purchaseTypeStr = dynamic_cast<__String *>(purchasableDict->objectForKey(CCStoreConsts::JSON_PURCHASE_TYPE));
         CCAssert(purchaseTypeStr != NULL, "invalid object type in dictionary");
-        if (purchaseTypeStr->compare(JSON_PURCHASE_TYPE_MARKET) == 0) {
-            CCDictionary *marketItemDict = dynamic_cast<CCDictionary *>(purchasableDict->objectForKey(JSON_PURCHASE_MARKET_ITEM));
+        if (purchaseTypeStr->compare(CCStoreConsts::JSON_PURCHASE_TYPE_MARKET) == 0) {
+            __Dictionary *marketItemDict = dynamic_cast<__Dictionary *>(purchasableDict->objectForKey(CCStoreConsts::JSON_PURCHASE_MARKET_ITEM));
             CC_ASSERT(marketItemDict);
             setPurchaseType(CCPurchaseWithMarket::createWithMarketItem(
                     CCMarketItem::createWithDictionary(marketItemDict)));
-        } else if (purchaseTypeStr->compare(JSON_PURCHASE_TYPE_VI) == 0) {
-            CCString *itemId = dynamic_cast<CCString *>(purchasableDict->objectForKey(JSON_PURCHASE_VI_ITEMID));
+        } else if (purchaseTypeStr->compare(CCStoreConsts::JSON_PURCHASE_TYPE_VI) == 0) {
+            __String *itemId = dynamic_cast<__String *>(purchasableDict->objectForKey(CCStoreConsts::JSON_PURCHASE_VI_ITEM_ID));
             CC_ASSERT(itemId);
-            CCInteger *amount = dynamic_cast<CCInteger *>(purchasableDict->objectForKey(JSON_PURCHASE_VI_AMOUNT));
+            __Integer *amount = dynamic_cast<__Integer *>(purchasableDict->objectForKey(CCStoreConsts::JSON_PURCHASE_VI_AMOUNT));
             CC_ASSERT(amount);
 
             setPurchaseType(CCPurchaseWithVirtualItem::create(itemId, amount));
         } else {
-            CCLog("Couldn't determine what type of class is the given purchaseType.");
+            CC_ASSERT(false);
+            cocos2d::log("Couldn't determine what type of class is the given purchaseType.");
         }
     }
 
-    void CCPurchasableVirtualItem::putPurchaseTypeToDict(CCDictionary *dict) {
-        CCDictionary *purchasableObj = CCDictionary::create();
+    void CCPurchasableVirtualItem::putPurchaseTypeToDict(__Dictionary *dict) {
+        __Dictionary *purchasableObj = __Dictionary::create();
 
         if (dynamic_cast<CCPurchaseWithMarket *>(mPurchaseType)) {
-            purchasableObj->setObject(CCString::create(JSON_PURCHASE_TYPE_MARKET), JSON_PURCHASE_TYPE);
+            purchasableObj->setObject(__String::create(CCStoreConsts::JSON_PURCHASE_TYPE_MARKET), CCStoreConsts::JSON_PURCHASE_TYPE);
 
             CCPurchaseWithMarket *purchaseWithMarket = (CCPurchaseWithMarket *)mPurchaseType;
             CCMarketItem *mi = purchaseWithMarket->getMarketItem();
-            purchasableObj->setObject(mi->toDictionary(), JSON_PURCHASE_MARKET_ITEM);
+            purchasableObj->setObject(mi->toDictionary(), CCStoreConsts::JSON_PURCHASE_MARKET_ITEM);
         }
         else if (dynamic_cast<CCPurchaseWithVirtualItem *>(mPurchaseType)) {
             CCPurchaseWithVirtualItem *purchaseWithVirtualItem = (CCPurchaseWithVirtualItem *)mPurchaseType;
-            purchasableObj->setObject(CCString::create(JSON_PURCHASE_TYPE_VI), JSON_PURCHASE_TYPE);
-            purchasableObj->setObject(purchaseWithVirtualItem->getItemId(), JSON_PURCHASE_VI_ITEMID);
-            purchasableObj->setObject(purchaseWithVirtualItem->getAmount(), JSON_PURCHASE_VI_AMOUNT);
+            purchasableObj->setObject(__String::create(CCStoreConsts::JSON_PURCHASE_TYPE_VI), CCStoreConsts::JSON_PURCHASE_TYPE);
+            purchasableObj->setObject(purchaseWithVirtualItem->getItemId(), CCStoreConsts::JSON_PURCHASE_VI_ITEM_ID);
+            purchasableObj->setObject(purchaseWithVirtualItem->getAmount(), CCStoreConsts::JSON_PURCHASE_VI_AMOUNT);
         } else {
             CC_ASSERT(false);
         }
 
-        dict->setObject(purchasableObj, JSON_PURCHASABLE_ITEM);
+        dict->setObject(purchasableObj, CCStoreConsts::
+        JSON_PURCHASABLE_ITEM);
     }
 
 
