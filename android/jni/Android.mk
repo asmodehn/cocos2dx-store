@@ -73,7 +73,7 @@ LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)/../../Soomla/rewards
 
 include $(BUILD_STATIC_LIBRARY)
 
-$(call import-module,extensions/soomla-cocos2dx-core/android/jni)
+$(call import-module,soomla-cocos2dx-core/android/jni)
 
 ifneq '$(COCOS2D_JAVASCRIPT)' ''
 $(call import-module,external/spidermonkey/prebuilt/android)
