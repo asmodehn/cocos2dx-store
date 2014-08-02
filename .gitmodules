@@ -4,3 +4,7 @@
 [submodule "submodules/ios-store"]
 	path = submodules/ios-store
 	url = https://github.com/asmodehn/ios-store.git
+[submodule "CMake"]
+	path = CMake
+	url = https://github.com/asmodehn/wkcmake.git
+	branch = master
