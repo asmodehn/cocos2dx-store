@@ -23,6 +23,7 @@ WkDepends("../soomla-cocos2dx-core")
 
 set( ${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${${PROJECT_NAME}_SoomlaCocos2dxCore_INCLUDE_DIRS} )
 
+include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 
 WkLibraryBuild( Cocos2dxStore STATIC "Soomla")
 
