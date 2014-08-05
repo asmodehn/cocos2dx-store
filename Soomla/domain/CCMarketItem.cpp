@@ -48,6 +48,8 @@ namespace soomla {
         char const* key = CCStoreConsts::JSON_MARKET_ITEM_ANDROID_ID;
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
         char const* key = CCStoreConsts::JSON_MARKET_ITEM_IOS_ID;
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+		char const* key = CCStoreConsts::JSON_MARKET_ITEM_PRODUCT_ID;
 #endif
         cocos2d::Ref* obj = dict->objectForKey(key);
         CCAssert(obj == NULL || dynamic_cast<__String *>(obj), "invalid object type in dictionary");
