@@ -27,7 +27,11 @@ include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 
 WkLibraryBuild( Cocos2dxStore STATIC "Soomla")
 
+#Temporary work around wkcmake bug with dependencies at multiple levels
+set(Cocos2dxStore_SoomlaCocos2dxCore_LIBRARIES "SoomlaCocos2dxCore" ${SoomlaCocos2dxCore_jansson_LIBRARIES} CACHE PATH "SoomlaCocos2dxCore Libraries")
+target_link_libraries(Cocos2dxStore SoomlaCocos2dxCore)
 	
 set( ${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} 
 	CACHE PATH "Headers Directories"
 )
+	
