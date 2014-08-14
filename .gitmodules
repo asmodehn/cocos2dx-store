@@ -8,3 +8,7 @@
 	path = CMake
 	url = https://github.com/asmodehn/wkcmake.git
 	branch = master
+[submodule "submodules/soomla-cocos2dx-core"]
+	path = submodules/soomla-cocos2dx-core
+	url = https://github.com/asmodehn/soomla-cocos2dx-core.git
+	branch = master

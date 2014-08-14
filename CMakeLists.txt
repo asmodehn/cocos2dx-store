@@ -58,7 +58,7 @@ endif()
 
 
 
-WkDepends("../soomla-cocos2dx-core")
+WkDepends("submodules/soomla-cocos2dx-core")
 
 set( ${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${${PROJECT_NAME}_SoomlaCocos2dxCore_INCLUDE_DIRS} )
 
