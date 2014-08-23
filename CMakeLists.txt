@@ -16,6 +16,7 @@ set( ${PROJECT_NAME}_INCLUDE_DIRS "Soomla/data"
 	"Soomla/jsb"
 	"Soomla/PurchaseTypes"
 	"Soomla/rewards"
+	"." #to be able to #include "Soomla/Header.h" as usual.
 	)
 	
 
