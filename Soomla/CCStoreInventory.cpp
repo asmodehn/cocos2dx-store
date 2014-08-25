@@ -17,6 +17,9 @@
 // Created by Fedor Shubin on 5/21/13.
 
 #include "CCStoreInventory.h"
+#include "CCStoreInfo.h"
+#include "CCStoreEventDispatcher.h"
+#include "CCVirtualCurrencyPack.h"
 #include "CCStoreUtils.h"
 #include "CCNdkBridge.h"
 
@@ -60,7 +63,66 @@ namespace soomla {
         params->setObject(__String::create("CCStoreInventory::buyItem"), "method");
         params->setObject(__String::create(itemId), "itemId");
         params->setObject(__String::create(payload != nullptr ? payload : ""), "payload");
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no native store implementation for win32 or linux
+		//-> we fake success
+		CCError* err = NULL;
+		CCVirtualItem* item = CCStoreInfo::sharedStoreInfo()->getItemByItemId(itemId, &err);
+		if (!err)
+		{
+			CCPurchasableVirtualItem * pvi = dynamic_cast<CCPurchasableVirtualItem *> (item);
+			if (pvi)
+			{
+				std::string pviID(pvi->getItemId()->getCString());
+				CCStoreEventDispatcher::getInstance()->onItemPurchaseStarted(pvi);
+
+				//we are in fake store
+				CCStoreEventDispatcher::getInstance()->onBillingNotSupported();
+
+				//handling android static tests
+				if (pviID == "android.test.item_unavailable")
+				{
+					//nothing to do
+				}
+				else if (pviID == "android.test.canceled")
+				{
+					//nothing to do
+				}
+				else if (pviID == "android.test.refunded")
+				{
+					CCError* err = NULL;
+					takeItem(itemId,1,&err);
+					if (!err)
+					{
+						//done!!
+					}
+				}
+				else //if (pviID == "android.test.purchased") and all other cases
+				{
+					CCError* err = NULL;
+					giveItem(itemId, 1, &err);
+					if (!err)
+					{
+						//done!!
+						CCStoreEventDispatcher::getInstance()->onItemPurchased(pvi);
+					}
+				}
+			}
+
+			CCVirtualCurrencyPack * vcp = dynamic_cast<CCVirtualCurrencyPack *> (item);
+			if (vcp)
+			{
+				if (err)
+				{
+					//TODO : handle error
+				}
+			}
+			//TODO : virtual item
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
         CCNdkBridge::callNative (params, error);
+#endif
     }
 
     int CCStoreInventory::getItemBalance(char const *itemId, CCError **error) {
@@ -69,8 +131,21 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::getItemBalance"), "method");
         params->setObject(__String::create(itemId), "itemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
 
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//TODO : we fake success
+		auto itemstored = m_inventory.find(itemId);
+		if (itemstored != m_inventory.end())
+		{
+			retParams = __Dictionary::create();
+			retParams->setObject(CCInteger::create(itemstored->second), "return");
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, error);
+#endif
         if (retParams == NULL) {
         	return 0;
         }
@@ -91,7 +166,46 @@ namespace soomla {
         params->setObject(__String::create("CCStoreInventory::giveItem"), "method");
         params->setObject(__String::create(itemId), "itemId");
         params->setObject(__Integer::create(amount), "amount");
-        CCNdkBridge::callNative (params, error);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+
+		CCError* err = NULL;
+		auto iteminfo = CCStoreInfo::sharedStoreInfo()->getItemByItemId(itemId,&err);
+		if (!err)
+		{
+			CCVirtualCurrencyPack* pack = dynamic_cast<CCVirtualCurrencyPack*> (iteminfo);
+			if (pack)
+			{
+				//replacing parameters if it s a virtual currency pack
+				itemId = pack->getCurrencyItemId()->getCString();
+				amount = amount * pack->getCurrencyAmount()->getValue();
+			}
+			//storing any virtual item
+			auto itemstored = m_inventory.find(itemId);
+			if (itemstored != m_inventory.end())
+			{
+				m_inventory.at(itemId) += amount;
+			}
+			else
+			{
+				m_inventory.insert(std::make_pair(itemId, amount));
+			}
+
+			CCVirtualItem* item = CCStoreInfo::sharedStoreInfo()->getItemByItemId(itemId, &err);
+			if (!err)
+			{
+				CCVirtualCurrency * vc = dynamic_cast<CCVirtualCurrency *> (item);
+				if (vc)
+				{
+					CCStoreEventDispatcher::getInstance()->onCurrencyBalanceChanged(vc, m_inventory.at(itemId), amount);
+				}
+			}
+
+		}
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		CCNdkBridge::callNative (params, error);
+#endif
     }
 
     void CCStoreInventory::takeItem(char const *itemId, int amount, CCError **error) {
@@ -102,7 +216,34 @@ namespace soomla {
         params->setObject(__String::create("CCStoreInventory::takeItem"), "method");
         params->setObject(__String::create(itemId), "itemId");
         params->setObject(__Integer::create(amount), "amount");
-        CCNdkBridge::callNative (params, error);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+		CCError* err = NULL;
+		auto iteminfo = CCStoreInfo::sharedStoreInfo()->getItemByItemId(itemId, &err);
+		if (!err)
+		{
+			CCVirtualCurrencyPack* pack = dynamic_cast<CCVirtualCurrencyPack*> (iteminfo);
+			if (pack)
+			{
+				//replacing parameters if it s a virtual currency pack
+				itemId = pack->getCurrencyItemId()->getCString();
+				amount = amount * pack->getCurrencyAmount()->getValue();
+			}
+			//storing any virtual item
+			auto itemstored = m_inventory.find(itemId);
+			if (itemstored != m_inventory.end() && m_inventory.at(itemId) > amount)
+			{
+				m_inventory.at(itemId) -= amount;
+			}
+			else
+			{
+				//TODO : trigger error
+			}
+		}
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		CCNdkBridge::callNative(params, error);
+#endif
     }
 
     void CCStoreInventory::equipVirtualGood(char const *itemId, CCError **error) {
@@ -112,7 +253,13 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::equipVirtualGood"), "method");
         params->setObject(__String::create(itemId), "itemId");
-        CCNdkBridge::callNative (params, error);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//TODO : we fake success
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		CCNdkBridge::callNative(params, error);
+#endif
    }
 
     void CCStoreInventory::unEquipVirtualGood(char const *itemId, CCError **error) {
@@ -122,7 +269,13 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::unEquipVirtualGood"), "method");
         params->setObject(__String::create(itemId), "itemId");
-        CCNdkBridge::callNative (params, error);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//TODO : we fake success
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		CCNdkBridge::callNative(params, error);
+#endif
     }
 
     bool CCStoreInventory::isVirtualGoodEquipped(char const *itemId, CCError **error) {
@@ -132,7 +285,14 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::isVirtualGoodEquipped"), "method");
         params->setObject(__String::create(itemId), "itemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//TODO : we fake success
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, error);
+#endif
 
         if (retParams == NULL) {
         	return false;
@@ -152,7 +312,14 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::getGoodUpgradeLevel"), "method");
         params->setObject(__String::create(goodItemId), "goodItemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//TODO : we fake success
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, error);
+#endif
 
         if (retParams == NULL) {
         	return 0;
@@ -172,7 +339,14 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::getGoodCurrentUpgrade"), "method");
         params->setObject(__String::create(goodItemId), "goodItemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//TODO : we fake success
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, error);
+#endif
 
         if (retParams == NULL) {
         	return "";
@@ -193,7 +367,13 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::upgradeGood"), "method");
         params->setObject(__String::create(goodItemId), "goodItemId");
-        CCNdkBridge::callNative (params, error);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//TODO : we fake success
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		CCNdkBridge::callNative(params, error);
+#endif
     }
 
     void CCStoreInventory::removeGoodUpgrades(char const *goodItemId, CCError **error) {
@@ -203,7 +383,13 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::removeGoodUpgrades"), "method");
         params->setObject(__String::create(goodItemId), "goodItemId");
-        CCNdkBridge::callNative (params, error);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//TODO : we fake success
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		CCNdkBridge::callNative(params, error);
+#endif
     }
 
     bool CCStoreInventory::nonConsumableItemExists(char const *nonConsItemId, CCError **error) {
@@ -213,7 +399,20 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::nonConsumableItemExists"), "method");
         params->setObject(__String::create(nonConsItemId), "nonConsItemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		// we fake success
+		auto ncitemstored = m_inventory.find(nonConsItemId);
+		if (ncitemstored != m_inventory.end())
+		{
+			retParams = __Dictionary::create();
+			retParams->setObject(CCBool::create(true), "return");
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, error);
+#endif
 
         if (retParams == NULL) {
         	return false;
@@ -234,7 +433,23 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::addNonConsumableItem"), "method");
         params->setObject(__String::create(nonConsItemId), "nonConsItemId");
-        CCNdkBridge::callNative (params, error);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		// we fake success
+
+		auto ncitemstored = m_inventory.find(nonConsItemId);
+		if (ncitemstored != m_inventory.end())
+		{
+			m_inventory.at(nonConsItemId) += 1;
+		}
+		else
+		{
+			m_inventory.insert(std::make_pair(nonConsItemId, 1));
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		CCNdkBridge::callNative(params, error);
+#endif
    }
 
     void CCStoreInventory::removeNonConsumableItem(char const *nonConsItemId, CCError **error) {
@@ -244,6 +459,21 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInventory::removeNonConsumableItem"), "method");
         params->setObject(__String::create(nonConsItemId), "nonConsItemId");
-        CCNdkBridge::callNative (params, error);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		// we fake success
+		auto ncitemstored = m_inventory.find(nonConsItemId);
+		if (ncitemstored != m_inventory.end() && m_inventory.at(nonConsItemId)> 1)
+		{
+			m_inventory.at(nonConsItemId) -= 1;
+		}
+		else
+		{
+			//TODO : trigger error
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		CCNdkBridge::callNative(params, error);
+#endif
     }
 }

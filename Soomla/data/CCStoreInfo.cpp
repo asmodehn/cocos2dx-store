@@ -20,6 +20,7 @@
 #include "../domain/virtualGoods/CCSingleUseVG.h"
 #include "../domain/virtualGoods/CCEquippableVG.h"
 #include "../domain/virtualGoods/CCSingleUsePackVG.h"
+#include "CCPurchaseWithMarket.h"
 #include "../domain/virtualCurrencies/CCVirtualCurrency.h"
 #include "../domain/virtualCurrencies/CCVirtualCurrencyPack.h"
 #include "../domain/CCNonConsumableItem.h"
@@ -63,6 +64,12 @@ namespace soomla {
             __Array *currencies = storeAssets->getCurrencies();
             Ref *obj;
             CCARRAY_FOREACH(currencies, obj) {
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+				m_currencies.push_back((CCVirtualCurrency *)obj);
+				m_virtualItems.insert(make_pair(std::string(((CCVirtualCurrency *)obj)->getItemId()->getCString()), ((CCVirtualCurrency *)obj) ));
+#endif
+
 				currenciesJSON->addObject(((CCVirtualCurrency *)obj)->toDictionary());
 			}
         }
@@ -72,6 +79,15 @@ namespace soomla {
             __Array *packs = storeAssets->getCurrencyPacks();
             Ref *obj;
             CCARRAY_FOREACH(packs, obj) {
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+				m_currencyPacks.push_back((CCVirtualCurrencyPack *)obj);
+				m_virtualItems.insert(make_pair(std::string(((CCVirtualCurrencyPack *)obj)->getItemId()->getCString()), ((CCVirtualCurrencyPack *)obj)));
+				
+				CCPurchaseType* ptype = ((CCVirtualGood *)obj)->getPurchaseType();
+				if (dynamic_cast<CCPurchaseWithMarket *>(ptype)) {
+					m_purchasableVirtualItems.insert(make_pair(std::string(((CCPurchaseWithMarket *)ptype)->getMarketItem()->getProductId()->getCString()), (CCVirtualGood *)obj));
+				}
+#endif
 				packsJSON->addObject(((CCVirtualCurrencyPack *)obj)->toDictionary());
 			}
         }
@@ -84,6 +100,17 @@ namespace soomla {
 
         Ref *obj;
         CCARRAY_FOREACH(storeAssets->getGoods(), obj) {
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+			m_goods.push_back(((CCVirtualGood *)obj));
+			m_virtualItems.insert(make_pair(std::string(((CCVirtualItem *)obj)->getItemId()->getCString()), (CCVirtualItem *)obj));
+
+			CCPurchaseType* ptype = ((CCVirtualGood *)obj)->getPurchaseType();
+			if (dynamic_cast<CCPurchaseWithMarket *>(ptype)) {
+				m_purchasableVirtualItems.insert(make_pair(std::string(((CCPurchaseWithMarket *)ptype)->getMarketItem()->getProductId()->getCString()), (CCVirtualGood *)obj));
+			}
+#endif
+
 			if (dynamic_cast<CCSingleUseVG *>(obj)) {
 				suGoods->addObject(((CCSingleUseVG *)obj)->toDictionary());
 			} else if (dynamic_cast<CCEquippableVG *>(obj)) {
@@ -94,6 +121,20 @@ namespace soomla {
 				paGoods->addObject(((CCSingleUsePackVG *)obj)->toDictionary());
 			} else if (dynamic_cast<CCUpgradeVG *>(obj)) {
 				upGoods->addObject(((CCUpgradeVG *)obj)->toDictionary());
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+				std::string upgradegoodid = std::string(((CCUpgradeVG *)obj)->getGoodItemId()->getCString());
+				auto upgrades = m_goodsUpgrades.find(upgradegoodid);
+				if (upgrades != m_goodsUpgrades.end())
+				{
+					upgrades->second->push_back(((CCUpgradeVG *)obj));
+				}
+				else
+				{
+					auto newupgrades = new std::vector<CCUpgradeVG*>();
+					newupgrades->push_back((CCUpgradeVG *)obj);
+					m_goodsUpgrades.insert(make_pair(upgradegoodid, newupgrades));
+				}
+#endif
 			}
 		}
 
@@ -109,6 +150,15 @@ namespace soomla {
             __Array *categories = storeAssets->getCategories();
             Ref *obj;
             CCARRAY_FOREACH(categories, obj) {
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+				m_categories.push_back((CCVirtualCategory *)obj);
+				cocos2d::__Array * goodids = ((CCVirtualCategory *)obj)->getGoodItemIds();
+				Ref *goodobj;
+				CCARRAY_FOREACH(goodids, goodobj) {
+					std::string goodobjid = ((cocos2d::__String*)goodobj)->getCString();
+					m_goodsCategories.insert(make_pair(goodobjid, (CCVirtualCategory *)obj));
+				}
+#endif
 				categoriesJSON->addObject(((CCVirtualCategory *)obj)->toDictionary());
 			}
         }
@@ -119,6 +169,11 @@ namespace soomla {
             __Array *nonConsumables = storeAssets->getNonConsumableItems();
             Ref *obj;
             CCARRAY_FOREACH(nonConsumables, obj) {
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+				m_nonConsumables.push_back((CCNonConsumableItem *)obj);
+				m_virtualItems.insert(make_pair(std::string(((CCVirtualItem *)obj)->getItemId()->getCString()), (CCVirtualItem *)obj));
+				
+#endif
 				nonConsumablesJSON->addObject(((CCNonConsumableItem *)obj)->toDictionary());
 			}
         }
@@ -147,9 +202,31 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getItemByItemId"), "method");
         params->setObject(__String::create(itemId), "itemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+		auto itemstored = m_virtualItems.find(itemId);
+		if (itemstored != m_virtualItems.end())
+		{
+			retParams = __Dictionary::create();
+			retParams->setObject(itemstored->second->toDictionary(), "return");
+		}
+		else
+		{
+			//not found
+			CCError * notfounderror = CCError::createWithObject(retParams);
+			if (notfounderror != NULL) {
+				*error = notfounderror;
+			}
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, error);
+#endif
+      
         if (!*error) {
-            SAFE_CREATE(CCVirtualItem *, ret, retParams);
+			SAFE_CREATE(CCVirtualItem *, ret, retParams);
             return ret;
         } else {
             CCStoreUtils::logDebug(TAG, __String::createWithFormat(
@@ -162,7 +239,22 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getPurchasableItemWithProductId"), "method");
         params->setObject(__String::create(productId), "productId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+		auto itemstored = m_purchasableVirtualItems.find(productId);
+		if (itemstored != m_purchasableVirtualItems.end())
+		{
+			retParams = __Dictionary::create();
+			retParams->setObject(itemstored->second, "return");
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+#endif
+        
         if (!*error) {
             SAFE_CREATE(CCPurchasableVirtualItem *, ret, retParams);
             return ret;
@@ -177,7 +269,22 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getCategoryForVirtualGood"), "method");
         params->setObject(__String::create(goodItemId), "goodItemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+		auto itemstored = m_goodsCategories.find(goodItemId);
+		if (itemstored != m_goodsCategories.end())
+		{
+			retParams = __Dictionary::create();
+			retParams->setObject(itemstored->second, "return");
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *) CCNdkBridge::callNative (params, error);
+#endif
+        
         if (!*error) {
             SAFE_CREATE(CCVirtualCategory *, ret, retParams);
             return ret;
@@ -192,7 +299,29 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getFirstUpgradeForVirtualGood"), "method");
         params->setObject(__String::create(goodItemId), "goodItemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+		auto upgradesstored = m_goodsUpgrades.find(goodItemId);
+		if (upgradesstored != m_goodsUpgrades.end())
+		{
+			for (CCUpgradeVG* upgrade : *(upgradesstored->second))
+			{
+				if (!(upgrade->getPrevItemId()) || upgrade->getPrevItemId()->length() == 0)
+				{
+					retParams = __Dictionary::create();
+					retParams->setObject(upgrade, "return");
+					break;
+				}
+			}
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+#endif
+        
         SAFE_CREATE(CCUpgradeVG *, ret, retParams);
         return ret;
     }
@@ -201,7 +330,28 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getLastUpgradeForVirtualGood"), "method");
         params->setObject(__String::create(goodItemId), "goodItemId");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+		auto upgradesstored = m_goodsUpgrades.find(goodItemId);
+		if (upgradesstored != m_goodsUpgrades.end())
+		{
+			for (CCUpgradeVG* upgrade : *(upgradesstored->second))
+			{
+				if (!(upgrade->getNextItemId()) || upgrade->getNextItemId()->length() == 0)
+				{
+					retParams = __Dictionary::create();
+					retParams->setObject(upgrade, "return");
+					break;
+				}
+			}
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+#endif
         SAFE_CREATE(CCUpgradeVG *, ret, retParams);
         return ret;
     }
@@ -210,7 +360,28 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getUpgradesForVirtualGood"), "method");
         params->setObject(__String::create(goodItemId), "goodItemId");
-		__Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+		auto upgradesstored = m_goodsUpgrades.find(goodItemId);
+		if (upgradesstored != m_goodsUpgrades.end())
+		{
+			retParams = __Dictionary::create();
+			__Array* arr = __Array::create();
+			//building array from vector
+			for (auto up : *(upgradesstored->second))
+			{
+				arr->addObject(up->toDictionary());
+			}
+			retParams->setObject(arr, "return");
+		}
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, NULL);
+#endif
+
 		__Array *retArray = (__Array *)retParams->objectForKey("return");
 
         return CCDomainHelper::getInstance()->getDomainsFromDictArray(
@@ -220,7 +391,24 @@ namespace soomla {
     __Array *CCStoreInfo::getVirtualCurrencies() {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getVirtualCurrencies"), "method");
-		__Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+
+		retParams = __Dictionary::create();
+		__Array* arr = __Array::create();
+		//building array from vector
+		for (auto up : m_currencies)
+		{
+			arr->addObject(up->toDictionary());
+		}
+		retParams->setObject(arr, "return");
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, NULL);
+#endif
 		__Array *retArray = (__Array *)retParams->objectForKey("return");
 
         return CCDomainHelper::getInstance()->getDomainsFromDictArray(
@@ -230,7 +418,23 @@ namespace soomla {
     __Array *CCStoreInfo::getVirtualGoods() {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getVirtualGoods"), "method");
-		__Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+
+		retParams = __Dictionary::create();
+		__Array* arr = __Array::create();
+		//building array from vector
+		for (auto up : m_goods)
+		{
+			arr->addObject(up->toDictionary());
+		}
+		retParams->setObject(arr, "return");
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, NULL);
+#endif
 		__Array *retArray = (__Array *)retParams->objectForKey("return");
 
         return CCDomainHelper::getInstance()->getDomainsFromDictArray(retArray);
@@ -239,7 +443,23 @@ namespace soomla {
     __Array *CCStoreInfo::getVirtualCurrencyPacks() {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getVirtualCurrencyPacks"), "method");
-        __Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+
+		retParams = __Dictionary::create();
+		__Array* arr = __Array::create();
+		//building array from vector
+		for (auto up : m_currencyPacks)
+		{
+			arr->addObject(up->toDictionary());
+		}
+		retParams->setObject(arr, "return");
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, NULL);
+#endif
 		__Array *retArray = (__Array *)retParams->objectForKey("return");
 
         return CCDomainHelper::getInstance()->getDomainsFromDictArray(
@@ -249,7 +469,23 @@ namespace soomla {
     __Array *CCStoreInfo::getNonConsumableItems() {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getNonConsumableItems"), "method");
-		__Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+
+		retParams = __Dictionary::create();
+		__Array* arr = __Array::create();
+		//building array from vector
+		for (auto up : m_nonConsumables)
+		{
+			arr->addObject(up->toDictionary());
+		}
+		retParams->setObject(arr, "return");
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, NULL);
+#endif
 		__Array *retArray = (__Array *)retParams->objectForKey("return");
 
         return CCDomainHelper::getInstance()->getDomainsFromDictArray(
@@ -259,7 +495,23 @@ namespace soomla {
     __Array *CCStoreInfo::getVirtualCategories() {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getVirtualCategories"), "method");
-		__Dictionary *retParams = (__Dictionary *) CCNdkBridge::callNative (params, NULL);
+		__Dictionary *retParams = NULL;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//no store implementation for win32
+		//we fake success
+
+		retParams = __Dictionary::create();
+		__Array* arr = __Array::create();
+		//building array from vector
+		for (auto up : m_categories)
+		{
+			arr->addObject(up->toDictionary());
+		}
+		retParams->setObject(arr, "return");
+
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+		retParams = (__Dictionary *)CCNdkBridge::callNative(params, NULL);
+#endif
 		__Array *retArray = (__Array *)retParams->objectForKey("return");
 
         return CCDomainHelper::getInstance()->getDomainsFromDictArray(

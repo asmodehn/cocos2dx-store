@@ -21,7 +21,9 @@
 
 #include "cocos2d.h"
 #include "CCStoreAssets.h"
-#include "../domain/CCVirtualItem.h"
+#include "CCVirtualCurrency.h"
+#include "CCVirtualCurrencyPack.h"
+#include "../domain/CCNonConsumableItem.h"
 #include "../domain/virtualGoods/CCUpgradeVG.h"
 #include "../domain/CCVirtualCategory.h"
 #include "CCError.h"
@@ -143,6 +145,24 @@ namespace soomla {
 		cocos2d::__Array *getVirtualCategories();
     private:
         cocos2d::Ref *createWithRetParams(cocos2d::__Dictionary *retParams);
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+
+		//fake store implementation for PC debug version
+		//NOTE NOT GOOD : duplication of the Java code in C++
+
+		std::unordered_map<std::string, CCVirtualItem*> m_virtualItems;
+		std::unordered_map<std::string, CCPurchasableVirtualItem* > m_purchasableVirtualItems;
+		std::unordered_map<std::string, CCVirtualCategory* > m_goodsCategories;
+		std::unordered_map<std::string, std::vector<CCUpgradeVG*>* > m_goodsUpgrades;
+
+		std::vector<CCVirtualCurrency*> m_currencies;
+		std::vector<CCVirtualCurrencyPack*> m_currencyPacks;
+		std::vector<CCVirtualGood*> m_goods;
+		std::vector<CCVirtualCategory*> m_categories;
+		std::vector<CCNonConsumableItem*> m_nonConsumables;
+
+#endif
     };
 };
 

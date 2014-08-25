@@ -36,6 +36,7 @@ namespace soomla {
 
     char const *CCStoreConsts::JSON_MARKET_ITEM_PRODUCT_ID = "productId";
     char const *CCStoreConsts::JSON_MARKET_ITEM_ANDROID_ID = "androidId";
+	char const *CCStoreConsts::JSON_MARKET_ITEM_FAKE_ID = "fakeId";
     char const *CCStoreConsts::JSON_MARKET_ITEM_IOS_ID = "iosId";
 
     char const *CCStoreConsts::JSON_MARKET_ITEM_CONSUMABLE = "consumable";

@@ -206,6 +206,11 @@ namespace soomla {
         void removeNonConsumableItem(const char *nonConsItemId, CCError **error);
 
         int getItemBalance(char const *itemId, char const *payload, CCError **error);
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		//fake store implementation for PC debug version
+		std::map<std::string, int> m_inventory;
+#endif
     };
 };
 
