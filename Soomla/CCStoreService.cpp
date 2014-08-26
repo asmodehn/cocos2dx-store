@@ -85,6 +85,7 @@ namespace soomla {
         }
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+		CCStoreUtils::logError(TAG, androidPublicKey->getCString());
         if (androidPublicKey == NULL) {
             androidPublicKey = __String::create("");
         }

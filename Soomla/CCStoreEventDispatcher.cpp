@@ -220,6 +220,8 @@ namespace soomla {
                 [this](__Dictionary *parameters) {
                     __Array *marketItems = (__Array *)(parameters->objectForKey("marketItems"));
 
+					CCStoreUtils::logDebug("CCStoreEventdispatcher", " In Event Dispatcher : Event Market Items Refreshed");
+
                     CCError *error = NULL;
                     __Dictionary *marketItem = NULL;
                     for (unsigned int i = 0; i < marketItems->count(); i++) {
@@ -244,6 +246,9 @@ namespace soomla {
                         mi->setMarketPrice(marketPrice);
                         mi->setMarketTitle(marketTitle);
                         mi->setMarketDescription(marketDescription);
+
+						// HACK perform callback on our registered handler for each item
+						this->onMarketItemRefreshed(mi);
                     }
 
                     // TODO: Where are params?
@@ -425,6 +430,13 @@ namespace soomla {
             eventHandler->onMarketItemsRefreshed();
         }
     }
+
+	// HACK to fix SOOMLA MARKET ITEMS
+	void CCStoreEventDispatcher::onMarketItemRefreshed(CCMarketItem *item) {
+		FOR_EACH_EVENT_HANDLER(CCStoreEventHandler)
+			eventHandler->onMarketItemRefreshed(item);
+		}
+	}
 
     void CCStoreEventDispatcher::onMarketItemsRefreshStarted() {
         FOR_EACH_EVENT_HANDLER(CCStoreEventHandler)

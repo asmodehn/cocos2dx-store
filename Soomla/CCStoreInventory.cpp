@@ -108,20 +108,47 @@ namespace soomla {
 					}
 				}
 			}
-
-			CCVirtualCurrencyPack * vcp = dynamic_cast<CCVirtualCurrencyPack *> (item);
-			if (vcp)
-			{
-				if (err)
-				{
-					//TODO : handle error
-				}
-			}
-			//TODO : virtual item
 		}
 
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+
+#if (COCOS2D_DEBUG)
+		//we cant use real purchases in debug mode
+		//-> we fake success
+		CCError* err = NULL;
+		CCVirtualItem* item = CCStoreInfo::sharedStoreInfo()->getItemByItemId(itemId, &err);
+		if (!err)
+		{
+			CCPurchasableVirtualItem * pvi = dynamic_cast<CCPurchasableVirtualItem *> (item);
+			if (pvi)
+			{
+				std::string pviID(pvi->getItemId()->getCString());
+				CCStoreEventDispatcher::getInstance()->onItemPurchaseStarted(pvi);
+
+				//we are in fake store
+				CCStoreEventDispatcher::getInstance()->onBillingNotSupported();
+
+				//still handling android static tests properly ( otherwise there is no point to them ) BUT NOTE android.test.purchased will break purchase list ( bug in IAB )
+				if (pviID == "android.test.item_unavailable" || pviID == "android.test.canceled" || "android.test.refunded" || "android.test.purchased" )
+				{
+					CCNdkBridge::callNative (params, error);
+				}
+				else //all other cases are supposed to be real purchase ( success fake in debug mode )
+				{
+					CCError* err = NULL;
+					giveItem(itemId, 1, &err);
+					if (!err)
+					{
+						//done!!
+						CCStoreEventDispatcher::getInstance()->onItemPurchased(pvi);
+					}
+				}
+			}
+		}
+#else //proper release implementation NOTE : we should not use android test purchase in this mode. ever.
         CCNdkBridge::callNative (params, error);
+#endif
+
 #endif
     }
 

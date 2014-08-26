@@ -7,6 +7,7 @@
 
 #include "CCStoreEventHandler.h"
 #include "CCAbstractAggregatedEventHandler.h"
+#include "CCMarketItem.h"
 
 namespace soomla {
     class CCStoreEventDispatcher: public CCAbstractAggregatedEventHandler<CCStoreEventHandler>, public CCStoreEventHandler {
@@ -53,6 +54,8 @@ namespace soomla {
         virtual void onStoreControllerInitialized();
 
         virtual void onMarketItemsRefreshed();
+
+		virtual void onMarketItemRefreshed(CCMarketItem *item);
 
 /** Android only events*/
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

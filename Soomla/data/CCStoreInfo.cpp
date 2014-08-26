@@ -29,6 +29,7 @@
 #include "CCNdkBridge.h"
 #include "CCDomainFactory.h"
 #include "CCDomainHelper.h"
+#include "CCStoreEventDispatcher.h"
 
 namespace soomla {
 
@@ -191,7 +192,6 @@ namespace soomla {
         params->setObject(storeAssetsObj, "storeAssets");
         CCNdkBridge::callNative (params, NULL);
 
-
         return true;
     }
 
@@ -248,7 +248,7 @@ namespace soomla {
 		if (itemstored != m_purchasableVirtualItems.end())
 		{
 			retParams = __Dictionary::create();
-			retParams->setObject(itemstored->second, "return");
+			retParams->setObject(itemstored->second->toDictionary(), "return");
 		}
 
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)

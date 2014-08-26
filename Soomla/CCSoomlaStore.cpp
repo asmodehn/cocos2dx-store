@@ -18,6 +18,7 @@
 
 #include "CCSoomlaStore.h"
 #include "CCNdkBridge.h"
+#include "CCStoreEventDispatcher.h"
 
 using namespace cocos2d;
 
@@ -61,7 +62,15 @@ namespace soomla {
     void CCSoomlaStore::refreshInventory() {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCSoomlaStore::refreshInventory"), "method");
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+		CCStoreEventDispatcher::getInstance()->onMarketItemsRefreshStarted();
+		//TODO : Simulate market refresh : set marketPrice on curency packs
+		//onMarketItemRefreshed(soomla::CCMarketItem *mi)
+		CCStoreEventDispatcher::getInstance()->onMarketItemsRefreshed();
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
         CCNdkBridge::callNative (params, NULL);
+#endif
     }
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)

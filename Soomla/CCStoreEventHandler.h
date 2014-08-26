@@ -22,6 +22,7 @@
 #include "CCVirtualGood.h"
 #include "CCEquippableVG.h"
 #include "CCUpgradeVG.h"
+#include "CCMarketItem.h"
 
 namespace soomla {
 	/** 
@@ -165,6 +166,8 @@ namespace soomla {
          item refreshed process has completed.
          */
         virtual void onMarketItemsRefreshed() = 0;
+
+		virtual void onMarketItemRefreshed(CCMarketItem *mi) = 0;
 
         /**
         Handles an `onMarketItemsRefreshStarted` event, which is fired when a market
