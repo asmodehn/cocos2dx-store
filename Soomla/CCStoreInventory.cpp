@@ -112,7 +112,7 @@ namespace soomla {
 
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 
-#if (COCOS2D_DEBUG)
+#if (COCOS2D_DEBUG >= 1)
 		//we cant use real purchases in debug mode
 		//-> we fake success
 		CCError* err = NULL;
@@ -129,12 +129,15 @@ namespace soomla {
 				CCStoreEventDispatcher::getInstance()->onBillingNotSupported();
 
 				//still handling android static tests properly ( otherwise there is no point to them ) BUT NOTE android.test.purchased will break purchase list ( bug in IAB )
-				if (pviID == "android.test.item_unavailable" || pviID == "android.test.canceled" || "android.test.refunded" || "android.test.purchased" )
+				if (pviID == "android.test.item_unavailable" || pviID == "android.test.canceled" || pviID == "android.test.refunded" || pviID == "android.test.purchased" )
 				{
 					CCNdkBridge::callNative (params, error);
 				}
 				else //all other cases are supposed to be real purchase ( success fake in debug mode )
 				{
+					CCStoreUtils::logDebug(TAG,
+						__String::createWithFormat("SOOMLA/COCOS2DX DEBUG build : we fake buy item %s success", itemId)->getCString());
+
 					CCError* err = NULL;
 					giveItem(itemId, 1, &err);
 					if (!err)
