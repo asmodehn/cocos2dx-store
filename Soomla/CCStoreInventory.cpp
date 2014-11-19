@@ -1,12 +1,12 @@
 /*
  Copyright (C) 2012-2014 Soomla Inc.
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ namespace soomla {
           s_SharedStoreInventory = new CCStoreInventory();
           s_SharedStoreInventory->init();
         }
-        
+
         return s_SharedStoreInventory;
     }
 
@@ -112,7 +112,7 @@ namespace soomla {
 
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 
-#if (COCOS2D_DEBUG >= 1)
+#if ( defined SOOMLA_FAKE_BUY )
 		//we cant use real purchases in debug mode
 		//-> we fake success
 		CCError* err = NULL;
