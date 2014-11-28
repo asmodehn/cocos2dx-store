@@ -132,6 +132,13 @@ namespace soomla {
             }
         }
 
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX )
+        //faking Store init on PC ( needs to be launched async )
+        cocos2d::Director::getInstance()->getScheduler()->performFunctionInCocosThread([](){
+                CCStoreEventDispatcher::getInstance()->onStoreControllerInitialized();
+        });
+#endif
+
         return true;
     }
 
