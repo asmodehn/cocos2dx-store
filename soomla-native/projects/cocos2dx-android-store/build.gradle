@@ -34,7 +34,6 @@ android {
 }
 
 dependencies {
-    compile files('libs/square-otto-1.3.2.jar')
     compile project(':cocos2dx-android-core')
     compile project(':SoomlaAndroidStore')
     compile project(':AndroidStoreGooglePlay')
