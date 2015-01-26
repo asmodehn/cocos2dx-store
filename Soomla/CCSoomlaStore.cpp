@@ -1,12 +1,12 @@
 /*
  Copyright (C) 2012-2014 Soomla Inc.
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,8 @@
 #include "CCSoomlaStore.h"
 #include "CCNdkBridge.h"
 #include "CCStoreEventDispatcher.h"
+//for test on PC only
+#include "CCMarketItem.h"
 
 using namespace cocos2d;
 
@@ -65,9 +67,16 @@ namespace soomla {
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
 		CCStoreEventDispatcher::getInstance()->onMarketItemsRefreshStarted();
-		//TODO : Simulate market refresh : set marketPrice on curency packs
-		//onMarketItemRefreshed(soomla::CCMarketItem *mi)
+		//TODO : Simulate market refresh : set marketPrice on currency packs
 		CCStoreEventDispatcher::getInstance()->onMarketItemsRefreshed();
+
+        CCMarketItem* mi = soomla::CCMarketItem::create(
+                        cocos2d::CCString::create("product_id"),
+                        cocos2d::CCInteger::create(soomla::CCMarketItem::CONSUMABLE),
+                        cocos2d::CCDouble::create(9.99)
+                    );
+        mi->retain();
+        CCStoreEventDispatcher::getInstance()->onMarketItemRefreshed(mi);
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
         CCNdkBridge::callNative (params, NULL);
 #endif

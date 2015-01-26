@@ -136,6 +136,18 @@ namespace soomla {
         //faking Store init on PC ( needs to be launched async )
         cocos2d::Director::getInstance()->getScheduler()->performFunctionInCocosThread([](){
                 CCStoreEventDispatcher::getInstance()->onStoreControllerInitialized();
+                //TODO : add others event to simulate on PC...
+                //normally triggered after refreshing inventory upon initialization of service
+                CCStoreEventDispatcher::getInstance()->onMarketItemsRefreshStarted();
+                CCStoreEventDispatcher::getInstance()->onMarketItemsRefreshed();
+                //this can only be for debug. we do not have the information about assets here at the moment.
+                CCMarketItem* mi = soomla::CCMarketItem::create(
+                                cocos2d::CCString::create("product_id"),
+                                cocos2d::CCInteger::create(soomla::CCMarketItem::CONSUMABLE),
+                                cocos2d::CCDouble::create(9.99)
+                            );
+                mi->retain();
+                CCStoreEventDispatcher::getInstance()->onMarketItemRefreshed(mi);
         });
 #endif
 
