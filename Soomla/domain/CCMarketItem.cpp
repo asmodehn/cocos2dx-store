@@ -50,9 +50,11 @@ namespace soomla {
         char const* key = CCStoreConsts::JSON_MARKET_ITEM_IOS_ID;
 //hack to get it to build on win32 / linux
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
-		char const* key = CCStoreConsts::JSON_MARKET_ITEM_FAKE_ID;
+        char const* key = CCStoreConsts::JSON_MARKET_ITEM_FAKE_ID;
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
-		char const* key = CCStoreConsts::JSON_MARKET_ITEM_FAKE_ID;
+        char const* key = CCStoreConsts::JSON_MARKET_ITEM_FAKE_ID;
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
+        char const* key = CCStoreConsts::JSON_MARKET_ITEM_FAKE_ID;
 #endif
         cocos2d::Ref* obj = dict->objectForKey(key);
         CCAssert(obj == NULL || dynamic_cast<__String *>(obj), "invalid object type in dictionary");
