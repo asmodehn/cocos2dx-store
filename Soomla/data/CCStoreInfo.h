@@ -146,7 +146,7 @@ namespace soomla {
     private:
         cocos2d::Ref *createWithRetParams(cocos2d::__Dictionary *retParams);
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 
 		//fake store implementation for PC debug version
 		//NOTE NOT GOOD : duplication of the Java code in C++

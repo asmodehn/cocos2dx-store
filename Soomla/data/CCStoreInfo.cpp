@@ -66,7 +66,7 @@ namespace soomla {
             Ref *obj;
             CCARRAY_FOREACH(currencies, obj) {
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 				m_currencies.push_back((CCVirtualCurrency *)obj);
 				m_virtualItems.insert(make_pair(std::string(((CCVirtualCurrency *)obj)->getItemId()->getCString()), ((CCVirtualCurrency *)obj) ));
 #endif
@@ -80,7 +80,7 @@ namespace soomla {
             __Array *packs = storeAssets->getCurrencyPacks();
             Ref *obj;
             CCARRAY_FOREACH(packs, obj) {
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 				m_currencyPacks.push_back((CCVirtualCurrencyPack *)obj);
 				m_virtualItems.insert(make_pair(std::string(((CCVirtualCurrencyPack *)obj)->getItemId()->getCString()), ((CCVirtualCurrencyPack *)obj)));
 				
@@ -102,7 +102,7 @@ namespace soomla {
         Ref *obj;
         CCARRAY_FOREACH(storeAssets->getGoods(), obj) {
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 			m_goods.push_back(((CCVirtualGood *)obj));
 			m_virtualItems.insert(make_pair(std::string(((CCVirtualItem *)obj)->getItemId()->getCString()), (CCVirtualItem *)obj));
 
@@ -122,7 +122,7 @@ namespace soomla {
 				paGoods->addObject(((CCSingleUsePackVG *)obj)->toDictionary());
 			} else if (dynamic_cast<CCUpgradeVG *>(obj)) {
 				upGoods->addObject(((CCUpgradeVG *)obj)->toDictionary());
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 				std::string upgradegoodid = std::string(((CCUpgradeVG *)obj)->getGoodItemId()->getCString());
 				auto upgrades = m_goodsUpgrades.find(upgradegoodid);
 				if (upgrades != m_goodsUpgrades.end())
@@ -151,7 +151,7 @@ namespace soomla {
             __Array *categories = storeAssets->getCategories();
             Ref *obj;
             CCARRAY_FOREACH(categories, obj) {
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 				m_categories.push_back((CCVirtualCategory *)obj);
 				cocos2d::__Array * goodids = ((CCVirtualCategory *)obj)->getGoodItemIds();
 				Ref *goodobj;
@@ -170,7 +170,7 @@ namespace soomla {
             __Array *nonConsumables = storeAssets->getNonConsumableItems();
             Ref *obj;
             CCARRAY_FOREACH(nonConsumables, obj) {
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 				m_nonConsumables.push_back((CCNonConsumableItem *)obj);
 				m_virtualItems.insert(make_pair(std::string(((CCVirtualItem *)obj)->getItemId()->getCString()), (CCVirtualItem *)obj));
 				
@@ -203,7 +203,7 @@ namespace soomla {
         params->setObject(__String::create("CCStoreInfo::getItemByItemId"), "method");
         params->setObject(__String::create(itemId), "itemId");
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 		auto itemstored = m_virtualItems.find(itemId);
@@ -241,7 +241,7 @@ namespace soomla {
         params->setObject(__String::create(productId), "productId");
 
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 		auto itemstored = m_purchasableVirtualItems.find(productId);
@@ -271,7 +271,7 @@ namespace soomla {
         params->setObject(__String::create(goodItemId), "goodItemId");
 
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 		auto itemstored = m_goodsCategories.find(goodItemId);
@@ -301,7 +301,7 @@ namespace soomla {
         params->setObject(__String::create(goodItemId), "goodItemId");
 
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 		auto upgradesstored = m_goodsUpgrades.find(goodItemId);
@@ -332,7 +332,7 @@ namespace soomla {
         params->setObject(__String::create(goodItemId), "goodItemId");
 
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 		auto upgradesstored = m_goodsUpgrades.find(goodItemId);
@@ -362,7 +362,7 @@ namespace soomla {
         params->setObject(__String::create(goodItemId), "goodItemId");
 
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 		auto upgradesstored = m_goodsUpgrades.find(goodItemId);
@@ -393,7 +393,7 @@ namespace soomla {
         params->setObject(__String::create("CCStoreInfo::getVirtualCurrencies"), "method");
 
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 
@@ -419,7 +419,7 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getVirtualGoods"), "method");
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 
@@ -444,7 +444,7 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getVirtualCurrencyPacks"), "method");
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 
@@ -470,7 +470,7 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getNonConsumableItems"), "method");
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 
@@ -496,7 +496,7 @@ namespace soomla {
         __Dictionary *params = __Dictionary::create();
         params->setObject(__String::create("CCStoreInfo::getVirtualCategories"), "method");
 		__Dictionary *retParams = NULL;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX || CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 		//no store implementation for win32
 		//we fake success
 
