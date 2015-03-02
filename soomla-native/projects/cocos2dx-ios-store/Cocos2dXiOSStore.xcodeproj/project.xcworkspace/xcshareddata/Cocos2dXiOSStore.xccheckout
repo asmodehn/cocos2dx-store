@@ -10,53 +10,53 @@
 	<string>Cocos2dXiOSStore</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>005EC9FD-CD93-4942-AA11-3D9621E8AC4D</key>
-		<string>https://github.com/stammen/angleproject</string>
-		<key>01E95FC6-FAAD-4DD1-AF0D-0C02FC16D21C</key>
-		<string>ssh://github.com/soomla/cocos2dx-store.git</string>
-		<key>F0A6017F-F867-42D4-8520-BBE767218D80</key>
-		<string>https://github.com/soomla/build-soomla</string>
+		<key>1700917ACA8DDA9B1CB46AF7CDEB090C16FB1C78</key>
+		<string>ssh://bitbucket.org/gps_df/dragonfall_game.git</string>
+		<key>7F41E3A86218147E742AB88280559E2C4A837E7E</key>
+		<string>https://github.com/asmodehn/cocos2dx-store.git</string>
+		<key>BF3C1EAB77E9354EB3F61A4936F6680425C9F8F5</key>
+		<string>git://github.com/asmodehn/WkCocos.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>build-cocos2dx-store-ios/Cocos2dXiOSStore.xcodeproj/project.xcworkspace</string>
+	<string>soomla-native/projects/cocos2dx-ios-store/Cocos2dXiOSStore.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>005EC9FD-CD93-4942-AA11-3D9621E8AC4D</key>
-		<string>../../../../cocos2d-x/cocos2dx/platform/third_party/winrt/angleproject</string>
-		<key>01E95FC6-FAAD-4DD1-AF0D-0C02FC16D21C</key>
-		<string>../../../../cocos2dx-store</string>
-		<key>F0A6017F-F867-42D4-8520-BBE767218D80</key>
-		<string>../../..</string>
+		<key>1700917ACA8DDA9B1CB46AF7CDEB090C16FB1C78</key>
+		<string>../../../../../../../../..</string>
+		<key>7F41E3A86218147E742AB88280559E2C4A837E7E</key>
+		<string>../../../../..</string>
+		<key>BF3C1EAB77E9354EB3F61A4936F6680425C9F8F5</key>
+		<string>../../../../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/soomla/build-soomla</string>
+	<string>https://github.com/asmodehn/cocos2dx-store.git</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>F0A6017F-F867-42D4-8520-BBE767218D80</string>
+	<string>7F41E3A86218147E742AB88280559E2C4A837E7E</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>005EC9FD-CD93-4942-AA11-3D9621E8AC4D</string>
+			<string>BF3C1EAB77E9354EB3F61A4936F6680425C9F8F5</string>
 			<key>IDESourceControlWCCName</key>
-			<string>angleproject</string>
+			<string>..</string>
 		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>F0A6017F-F867-42D4-8520-BBE767218D80</string>
+			<string>1700917ACA8DDA9B1CB46AF7CDEB090C16FB1C78</string>
 			<key>IDESourceControlWCCName</key>
-			<string>build-soomla</string>
+			<string>..</string>
 		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>01E95FC6-FAAD-4DD1-AF0D-0C02FC16D21C</string>
+			<string>7F41E3A86218147E742AB88280559E2C4A837E7E</string>
 			<key>IDESourceControlWCCName</key>
 			<string>cocos2dx-store</string>
 		</dict>
